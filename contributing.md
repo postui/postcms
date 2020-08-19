@@ -1,6 +1,6 @@
-# Contributing to postcms
+# Contributing to PostCMS
 
-Welcome, and thank you for taking the time in contributing to postcms!
+Welcome, and thank you for taking the time in contributing to PostCMS!
 
 
 ## Development Setup

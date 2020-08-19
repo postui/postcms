@@ -1,6 +1,6 @@
 {
   "name": "postcms",
-  "description": "The post cms",
+  "description": "The Post-CMS Framework.",
   "version": "0.0.0-alpha.1",
   "main": "index.js",
   "types": "typings/index.d.ts",
@@ -20,7 +20,9 @@
   "keywords": [
     "headless",
     "cms",
-    "postcms"
+    "postcms",
+    "react",
+    "vue"
   ],
   "author": "postUI Inc.",
   "license": "MIT",
