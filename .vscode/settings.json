@@ -1,0 +1,25 @@
+{
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/*.log": true,
+        "**/Thumbs.db": true,
+        "**/node_modules/": true,
+        "**/typings/": true,
+        "**/dist/": true,
+    },
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true,
+        "source.organizeImports": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "eslint.validate": [
+        "typescript",
+        "typescriptreact"
+    ]
+}

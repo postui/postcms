@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./src",
+        "target": "es2018",
+        "lib": [
+            "es2020",
+            "dom",
+        ],
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "isolatedModules": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "alwaysStrict": true,
+        "strictNullChecks": true,
+        "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "jsx": "react"
+    },
+    "include": [
+        "global.d.ts",
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "typings",
+        "dist"
+    ]
+}

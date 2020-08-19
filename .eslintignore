@@ -1,0 +1,6 @@
+node_modules/
+dist/
+/index.js
+/mod.ts
+/tsc.js
+*.d.ts
