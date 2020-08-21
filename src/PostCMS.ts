@@ -4,22 +4,39 @@ const host = 'postcms.x-static.io'
 
 export class PostCMS implements CMS {
     private _id: string
-    private _sessionToken: string | null
-    private _sessionUser: User | null
-    private _eventListeners: Map<string, Array<() => void>>
+    private _events: Map<string, Array<() => void>>
+    private _session: Session | null
 
     constructor(id: string) {
         this._id = id
-        this._sessionToken = localStorage.getItem('postcms/session-token')
-        this._sessionUser = null
-        this._eventListeners = new Map()
+        this._events = new Map()
+        this._session = null
     }
 
-    get session(): { user: User } | null {
-        if (this._sessionUser) {
-            return { user: this._sessionUser }
+    get session() {
+        return this._session
+    }
+
+    on(eventName: string, callback: () => void) {
+        if (this._events.has(eventName)) {
+            this._events.set(eventName, [...this._events.get(eventName)!, callback])
+        } else {
+            this._events.set(eventName, [callback])
         }
-        return null
+    }
+
+    off(eventName: string, callback?: () => void) {
+        if (this._events.has(eventName)) {
+            if (callback) {
+                const a = this._events.get(eventName)!
+                a.splice(a.indexOf(callback), 1)
+                if (a.length === 0) {
+                    this._events.delete(eventName)
+                }
+            } else {
+                this._events.delete(eventName)
+            }
+        }
     }
 
     async query(endpoint: string, params?: Record<string, any>, fc?: FetchController) {
@@ -43,8 +60,9 @@ export class PostCMS implements CMS {
             url += '?' + search.join('&')
         }
         const headers = new Headers()
-        if (this._sessionToken) {
-            headers.append('X-Session', this._sessionToken)
+        const token = localStorage.getItem('postcms/session-token')
+        if (token) {
+            headers.append('X-Session', token)
         }
         return await fetch(url, { method: 'GET', headers, signal: fc?.signal }).then(resp => resp.json())
     }
@@ -52,8 +70,9 @@ export class PostCMS implements CMS {
     async mutation(endpoint: string, data?: Record<string, any>, fc?: FetchController) {
         const url = `https://${this._id}.${host}/${endpoint}`
         const headers = new Headers()
-        if (this._sessionToken) {
-            headers.append('X-Session', this._sessionToken)
+        const token = localStorage.getItem('postcms/session-token')
+        if (token) {
+            headers.append('X-Session', token)
         }
         const body = new FormData()
         if (data) {
@@ -75,38 +94,30 @@ export class PostCMS implements CMS {
         return await fetch(url, { method: 'POST', headers, body, signal: fc?.signal }).then(resp => resp.json())
     }
 
-    updateSession(token: string | null, user: User | null) {
-        this._sessionToken = token
-        this._sessionUser = user
-        if (token) {
+    async updateSession() {
+        if (localStorage.getItem('postcms/session-token')) {
+            const { token, user, error } = await this.query('session')
+            if (error) {
+                if (error.status === 401) {
+                    this._updateSession(null, null)
+                } else {
+                    alert(error.message)
+                }
+            }
+            this._updateSession(token, user)
+        }
+    }
+
+    private _updateSession(token: string | null, user: User | null) {
+        if (token && user) {
+            this._session = { user }
             localStorage.addItem('postcms/session-token', token)
         } else {
+            this._session = null
             localStorage.removeItem('postcms/session-token')
         }
-        if (this._eventListeners.has('updatesession')) {
-            this._eventListeners.get('updatesession')!.forEach(cb => cb())
-        }
-    }
-
-    on(eventName: string, callback: () => void) {
-        if (this._eventListeners.has(eventName)) {
-            this._eventListeners.set(eventName, [...this._eventListeners.get(eventName)!, callback])
-        } else {
-            this._eventListeners.set(eventName, [callback])
-        }
-    }
-
-    off(eventName: string, callback?: () => void) {
-        if (this._eventListeners.has(eventName)) {
-            if (callback) {
-                const a = this._eventListeners.get(eventName)!
-                a.splice(a.indexOf(callback), 1)
-                if (a.length === 0) {
-                    this._eventListeners.delete(eventName)
-                }
-            } else {
-                this._eventListeners.delete(eventName)
-            }
+        if (this._events.has('updatesession')) {
+            this._events.get('updatesession')!.forEach(cb => cb())
         }
     }
 
@@ -115,12 +126,12 @@ export class PostCMS implements CMS {
         if (error) {
             throw error
         }
-        this.updateSession(token, user)
+        this._updateSession(token, user)
         return { user }
     }
 
     async logout() {
-        this.updateSession(null, null)
+        this._updateSession(null, null)
     }
 
     async createUser(props: { password: string, email?: string, username?: string, pn?: string, profile?: Record<string, any> }): Promise<User> {
@@ -128,8 +139,7 @@ export class PostCMS implements CMS {
         if (error) {
             throw error
         }
-        this._sessionToken = token
-        this._sessionUser = user
+        this._session = { user }
         localStorage.addItem('postcms/session-token', token)
         return user
     }
@@ -138,11 +148,11 @@ export class PostCMS implements CMS {
         return new PostCMSBucket(this, name)
     }
 
-    // 0 : [private read, private write]
-    // 1 : [public read, private write]
-    // 2 : [public read, member write]
-    // 3 : [public read, public write]
     async createBucket(name: string, acl: BucketACL) {
+        // 0 : [private read, private write]
+        // 1 : [public read, private write]
+        // 2 : [public read, member write]
+        // 3 : [public read, public write]
         let aclN = acl.read === 'private' ? 0 : 1
         if (acl.write === 'member') {
             aclN += 1

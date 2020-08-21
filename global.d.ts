@@ -1,10 +1,10 @@
 declare interface CMS {
-    session: { user: User } | null
+    session: Session | null
     query(endpoint: string, params?: Record<string, any>, fc?: FetchController): Promise<any>
     mutation(endpoint: string, data?: Record<string, any>, fc?: FetchController): Promise<any>
-    login(id: string, password: string): Promise<{ user: User }>
+    updateSession(): void
+    login(id: string, password: string): Promise<Session>
     logout(): Promise<void>
-    updateSession(token: string | null, user: User | null): void
     on(eventName: string, callback: () => void): void
     off(eventName: string, callback?: () => void): void
     createUser(data: { password: string, email?: string, username?: string, pn?: string, profile?: Record<string, any> }): Promise<User>
@@ -54,6 +54,10 @@ declare interface User {
     role: number
     crtime: number
     profile: Record<string, any>
+}
+
+declare interface Session {
+    user: User
 }
 
 declare interface SFSObject {

@@ -1,33 +1,22 @@
-import { createContext, createElement, PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react'
+import { createContext, createElement, PropsWithChildren, useEffect, useState } from 'react'
 import { PostCMS } from './PostCMS'
 
-export const CMSContext = createContext<{ cms: CMS }>({ cms: new PostCMS('') })
+export const CMSContext = createContext<{ cms: CMS, sessionTicks: number }>({ cms: new PostCMS(''), sessionTicks: 0 })
 CMSContext.displayName = 'CMSContext'
 
 export function CMSProvider({ cms, children }: PropsWithChildren<{ cms: CMS }>) {
     const [sessionTicks, setSessionTicks] = useState(0)
-    const querySession = useCallback(async () => {
-        const { token, user, error } = await cms.query('session')
-        if (error) {
-            if (error.status === 401) {
-                cms.updateSession(null, null)
-            } else {
-                alert(error.message)
-            }
-        }
-        cms.updateSession(token, user)
-    }, [])
-    const props = useMemo(() => ({ value: { cms }, sessionTicks }), [cms, sessionTicks])
 
     useEffect(() => {
-        const ticker = setInterval(() => querySession(), 5 * 60 * 1000)
-        cms.on('sessionupdate', () => setSessionTicks(n => n + 1))
-        querySession()
+        const ticker = setInterval(() => cms.updateSession(), 5 * 60 * 1000)
+        const sessionupdate = () => setSessionTicks(n => n + 1)
+        cms.on('sessionupdate', sessionupdate)
+        cms.updateSession()
         return () => {
-            cms.off('sessionupdate')
             clearInterval(ticker)
+            cms.off('sessionupdate', sessionupdate)
         }
     }, [cms])
 
-    return createElement(CMSContext.Provider, props, children)
+    return createElement(CMSContext.Provider, { value: { cms, sessionTicks } }, children)
 }
