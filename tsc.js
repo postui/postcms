@@ -2,7 +2,15 @@ const { spawn } = require('child_process')
 const fs = require('fs')
 const path = require('path')
 
-const childProcess = spawn(
+const dtsComments = `
+// Type definitions for PostCMS
+// Copyright (c) 2020 postUI Inc.
+
+/// <reference path="../global.d.ts" />
+
+`
+
+spawn(
     path.join(__dirname, 'node_modules', '.bin', 'tsc'),
     [
         '--outDir', path.join(__dirname, 'dist'),
@@ -28,13 +36,11 @@ const childProcess = spawn(
             .map(name => path.join(__dirname, 'src', name))
     ].filter(Boolean),
     { stdio: 'inherit' }
-)
-
-childProcess.on('close', () => {
+).on('close', () => {
     fs.readdirSync(path.join(__dirname, 'typings'))
         .filter(name => /\.d\.ts?$/.test(name))
         .forEach(name => {
             const filepath = path.join(__dirname, 'typings', name)
-            fs.writeFileSync(filepath, '// Type definitions for PostCMS\n// Copyright (c) 2020 postUI Inc.\n\n/// <reference path="../global.d.ts" />\n\n' + fs.readFileSync(filepath).toString())
+            fs.writeFileSync(filepath, dtsComments + fs.readFileSync(filepath).toString())
         })
 })
