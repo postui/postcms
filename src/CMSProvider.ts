@@ -8,13 +8,13 @@ export function CMSProvider({ cms, children }: PropsWithChildren<{ cms: CMS }>) 
     const [sessionTicks, setSessionTicks] = useState(0)
 
     useEffect(() => {
-        const ticker = setInterval(() => cms.updateSession(), 5 * 60 * 1000)
-        const sessionupdate = () => setSessionTicks(n => n + 1)
-        cms.on('sessionupdate', sessionupdate)
-        cms.updateSession()
+        const ticker = setInterval(() => cms.verifySession(), 5 * 60 * 1000)
+        const onSessionUpdate = () => setSessionTicks(n => n + 1)
+        cms.on('sessionupdate', onSessionUpdate)
+        cms.verifySession()
         return () => {
             clearInterval(ticker)
-            cms.off('sessionupdate', sessionupdate)
+            cms.off('sessionupdate', onSessionUpdate)
         }
     }, [cms])
 

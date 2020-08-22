@@ -7,8 +7,8 @@ export class PostCMSBucket implements Bucket {
         this._name = name
     }
 
-    async getPosts(filter?: PostsFilter, ac?: FetchController): Promise<Post[]> {
-        const { error, posts } = await this._cms.query(`/${this._name}`, filter, ac)
+    async getPosts(filter?: QueryPostsFilter, ac?: FetchController): Promise<Post[]> {
+        const { error, posts } = await this._cms.api.query(`/${this._name}`, filter, ac)
         if (error) {
             throw error
         }
@@ -16,7 +16,7 @@ export class PostCMSBucket implements Bucket {
     }
 
     async getPost(id: string, kv?: string[], ac?: FetchController): Promise<Post> {
-        const { error, post } = await this._cms.query(`/${this._name}/${id}`, kv ? { kv } : undefined, ac)
+        const { error, post } = await this._cms.api.query(`/${this._name}/${id}`, kv ? { kv } : undefined, ac)
         if (error) {
             throw error
         }
@@ -24,7 +24,7 @@ export class PostCMSBucket implements Bucket {
     }
 
     async createPost(data?: Partial<Omit<Post, 'id' | 'crtime' | 'modtime'>>): Promise<Post> {
-        const { error, post } = await this._cms.mutation('create-post', data)
+        const { error, post } = await this._cms.api.mutation('create-post', data)
         if (error) {
             throw error
         }
@@ -32,14 +32,14 @@ export class PostCMSBucket implements Bucket {
     }
 
     async updatePost(id: string, data: Partial<Omit<Post, 'id' | 'crtime' | 'modtime'>>): Promise<void> {
-        const { error } = await this._cms.mutation('update-post', { ...data, id })
+        const { error } = await this._cms.api.mutation('update-post', { ...data, id })
         if (error) {
             throw error
         }
     }
 
     async deletePost(id: string): Promise<void> {
-        const { error } = await this._cms.mutation('delete-post', { id })
+        const { error } = await this._cms.api.mutation('delete-post', { id })
         if (error) {
             throw error
         }

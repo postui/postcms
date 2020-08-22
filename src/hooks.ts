@@ -47,7 +47,7 @@ export function usePost(bucket?: string, id?: string, kv?: string[]): { post: Po
     return postContext
 }
 
-export function usePosts(bucket: string, filter?: PostsFilter): { posts: Post[] } | { isLoading: true } | { error: APIError } {
+export function usePosts(bucket: string, filter?: QueryPostsFilter): { posts: Post[] } | { isLoading: true } | { error: APIError } {
     const cms = useCMS()
     const [posts, setPosts] = useState<Post[]>([])
     const [isLoading, setIsLoading] = useState(true)

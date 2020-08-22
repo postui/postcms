@@ -1,13 +1,27 @@
-declare interface CMS {
-    session: Session | null
+declare interface APIError {
+    status: number
+    message: string
+}
+
+declare interface API {
     query(endpoint: string, params?: Record<string, any>, fc?: FetchController): Promise<any>
     mutation(endpoint: string, data?: Record<string, any>, fc?: FetchController): Promise<any>
+}
+
+declare interface CMS {
+    api: API
+    session: Session | null
     on(eventName: string, callback: () => void): void
     off(eventName: string, callback?: () => void): void
-    updateSession(): Promise<void>
+    verifySession(): Promise<Session | null>
     login(id: string, password: string): Promise<Session>
     logout(): Promise<void>
-    createUser(data: { password: string, email?: string, username?: string, pn?: string, profile?: Record<string, any> }): Promise<User>
+    getUsers(): Promise<User[]>
+    createUser(data: { password: string, username?: string, email?: string, pn?: string, profile?: Record<string, any> }): Promise<User>
+    updateUser(uid: string, data: { password?: string, username?: string, email?: string, pn?: string, profile?: Record<string, any> }): Promise<User>
+    updateUser(data: { username?: string, email?: string, pn?: string, profile?: Record<string, any> }): Promise<User>
+    updateUserPassword(oldPassword: string, newPassword: string): Promise<User>
+    forgetUserPassword(data: { email?: string, pn?: string }): Promise<void>
     bucket(name: string): Bucket
     createBucket(name: string, acl: BucketACL): Promise<Bucket>
     deleteBucket(name: string): Promise<void>
@@ -16,9 +30,10 @@ declare interface CMS {
 }
 
 declare interface User {
-    cms: string
     id: string
-    email: string
+    username?: string
+    email?: string
+    pn?: string
     role: number
     crtime: number
     profile: Record<string, any>
@@ -58,11 +73,6 @@ declare interface SFSObject {
     owner: string
     crtime: number
     meta: Record<string, any>
-}
-
-declare interface APIError {
-    status: number
-    message: string
 }
 
 declare interface FetchController {
